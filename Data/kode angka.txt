@@ -1,0 +1,14 @@
+Kategori :
+1. Budaya
+2. Taman Hiburan 
+3. Cagar Alam
+4. Bahari
+5. Pusat pebelanjaan
+6. Tempat Ibadah
+
+City : 
+1. Jakarta
+2. Yogyakarta
+3. Bandung
+4. Semarang
+5. Surabaya
