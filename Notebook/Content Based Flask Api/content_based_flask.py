@@ -8,7 +8,7 @@ app = Flask(__name__)
 @app.route("/recommendation", methods=["POST"])
 def get_recommendation():
     data = request.get_json()
-    nama_tempat = data["nama_tempat"]
+    nama_tempat = data["name_attraction"]
 
     # Panggil fungsi recommend_filtering dari model content-based
     recommended_places = recommend_filtering(nama_tempat)

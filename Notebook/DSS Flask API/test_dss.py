@@ -7,10 +7,10 @@ url = "http://127.0.0.1:5000/predict"
 
 # Data yang akan dikirim dalam format JSON
 data = {
-    "Rating": 5,
-    "Category": 2,
-    "Price": 3000,
-    "City": 4,
+    "rating_avg_attraction": 5,
+    "name_attraction_cat": 2,
+    "price_attraction": 3000,
+    "name_city": 4,
 }
 
 # Mengirim permintaan POST dengan payload JSON
@@ -24,4 +24,4 @@ else:
 
 # Mencetak respons JSON
 data = response.json()
-print(data["predicted_place_id"]["Place_Name"])
+print(data["predicted_place_id"]["name_attraction"])

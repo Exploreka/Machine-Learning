@@ -5,7 +5,7 @@ import json
 url = "http://127.0.0.1:5000/recommendation"
 
 # Data yang akan dikirim dalam format JSON
-data = {"nama_tempat": "Dunia Fantasi"}
+data = {"name_attraction": "Pantai Watu Kodok"}
 
 # Mengirim permintaan POST dengan payload JSON
 response = requests.post(url, json=data)

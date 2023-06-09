@@ -1,15 +1,73 @@
 import pickle
 import pandas as pd
+import psycopg2
 
-data_filtering = pd.read_csv("./data_filtering.csv")
+# data_filtering = pd.read_csv("./data_filtering.csv")
+# Membuat koneksi ke database MySQL
+db = psycopg2.connect(
+    host="34.128.127.141",
+    port=5432,
+    user="postgres",
+    password="exploreka",
+    database="exploreka",
+)
+# df = pd.read_csv("tourism_with_id.csv")
+
+# Membuat objek cursor
+cursor = db.cursor()
+
+# Menjalankan perintah SQL SELECT untuk mengambil data
+query = """
+    SELECT tourism.id_attraction,
+        category.name_attraction_cat,
+        city.name_city,
+        tourism.name_attraction,
+        tourism.price_attraction,
+        tourism.rating_avg_attraction,
+        tourism.id_city,
+        tourism.id_attraction_cat,
+        tourism.desc_attraction
+    FROM attraction tourism
+    JOIN attraction_category category ON tourism.id_attraction_cat = category.id_attraction_cat
+    JOIN city city ON tourism.id_city = city.id_city;
+"""
+cursor.execute(query)
+
+# Mengambil semua baris hasil query
+rows = cursor.fetchall()
+
+# Mendapatkan nama kolom dari cursor.description
+column_names = [desc[0] for desc in cursor.description]
+
+# Membuat DataFrame dari hasil query
+df = pd.DataFrame(rows, columns=column_names)
+
+# Menutup cursor dan koneksi
+cursor.close()
+db.close()
+
+# Melakukan operasi atau tindakan lain dengan DataFrame
+print(df.head())
+df = df[
+    [
+        "id_attraction",
+        "name_attraction",
+        "price_attraction",
+        "rating_avg_attraction",
+        "id_city",
+        "id_attraction_cat",
+        "name_attraction_cat",
+        "name_city",
+        "desc_attraction",
+    ]
+]
+print(df.head())
 
 
 def recommend_filtering(nama_tempat):
     # Get the pairwsie similarity scores of all place name with given place name
     similarity = pickle.load(open("content_based_model.pkl", "rb"))
-    nama_tempat_index = data_filtering[
-        data_filtering["Place_Name"] == nama_tempat
-    ].index[0]
+    nama_tempat_index = df[df["name_attraction"] == nama_tempat].index[0]
     distancess = similarity[nama_tempat_index]
     # Sort place based on the similarity scores
     nama_tempat_list = sorted(
@@ -18,7 +76,7 @@ def recommend_filtering(nama_tempat):
 
     recommended_nama_tempats = []
     for i in nama_tempat_list:
-        recommended_nama_tempats.append([data_filtering.iloc[i[0]].Place_Name] + [i[1]])
+        recommended_nama_tempats.append([df.iloc[i[0]].name_attraction] + [i[1]])
         # print(nama_tempats.iloc[i[0]].original_title)
 
     return recommended_nama_tempats
