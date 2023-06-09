@@ -2,10 +2,10 @@ import requests
 import json
 
 # URL endpoint of your Flask API
-url = "http://localhost:5000/recommend"
+url = "http://localhost:5000/collab_recommendation"
 
 # Define the input data for recommendation
-input_data = {"User_Id": 1}  # Replace with the desired user ID
+input_data = {"id_user": 3}  # Replace with the desired user ID
 
 # Send a POST request to the API endpoint
 response = requests.post(url, json=input_data)

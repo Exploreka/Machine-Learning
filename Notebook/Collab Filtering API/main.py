@@ -1,3 +1,4 @@
+import psycopg2
 from flask import Flask, request, jsonify
 import pandas as pd
 import numpy as np
@@ -5,14 +6,75 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 
-app = Flask(__name__)
+
+db = psycopg2.connect(
+    host="34.128.127.141",
+    port=5432,
+    user="postgres",
+    password="exploreka",
+    database="exploreka",
+)
+
+
+cursor = db.cursor()
 
 # Load and preprocess data
-tourism_rating = pd.read_csv("tourism_rating.csv")
-tourism_with_id = pd.read_csv("tourism_with_id.csv")
-user = pd.read_csv("user.csv")
+# tourism_rating = pd.read_csv("tourism_rating.csv")
+# tourism_with_id = pd.read_csv("tourism_with_id.csv")
+# user = pd.read_csv("user.csv")
 
-user_ids = tourism_rating["User_Id"].unique().tolist()
+tourism_rating = """
+    SELECT id_user, 
+        id_attraction, 
+        rating
+    FROM review_attraction;
+"""
+
+tourism_with_id = """
+    SELECT tourism.id_attraction,
+        category.name_attraction_cat,
+        city.name_city,
+        tourism.name_attraction,
+        tourism.price_attraction,
+        tourism.id_city,
+        tourism.id_attraction_cat,
+        tourism.desc_attraction
+    FROM attraction tourism
+    JOIN attraction_category category ON tourism.id_attraction_cat = category.id_attraction_cat
+    JOIN city city ON tourism.id_city = city.id_city;
+    """
+cursor.execute(tourism_rating)
+
+# Mengambil semua baris hasil query
+rows = cursor.fetchall()
+
+# Mendapatkan nama kolom dari cursor.description
+column_names = [desc[0] for desc in cursor.description]
+
+# Membuat DataFrame dari hasil query
+tourism_rating = pd.DataFrame(rows, columns=column_names)
+print(tourism_rating.head())
+
+# Menutup cursor dan koneksi
+
+cursor.execute(tourism_with_id)
+
+# Mengambil semua baris hasil query
+rows = cursor.fetchall()
+
+# Mendapatkan nama kolom dari cursor.description
+column_names = [desc[0] for desc in cursor.description]
+
+# Membuat DataFrame dari hasil query
+tourism_with_id = pd.DataFrame(rows, columns=column_names)
+print(tourism_with_id.head())
+
+# Menutup cursor dan koneksi
+cursor.close()
+
+
+db.close()
+user_ids = tourism_rating["id_user"].unique().tolist()
 
 # Encode user IDs
 user_to_user_encoded = {x: i for i, x in enumerate(user_ids)}
@@ -21,7 +83,7 @@ user_to_user_encoded = {x: i for i, x in enumerate(user_ids)}
 user_encoded_to_user = {i: x for i, x in enumerate(user_ids)}
 
 # Convert placeID to a list without duplicate values
-place_ids = tourism_rating["Place_Id"].unique().tolist()
+place_ids = tourism_rating["id_attraction"].unique().tolist()
 
 # Encoding placeID
 place_to_place_encoded = {x: i for i, x in enumerate(place_ids)}
@@ -30,13 +92,15 @@ place_to_place_encoded = {x: i for i, x in enumerate(place_ids)}
 place_encoded_to_place = {i: x for i, x in enumerate(place_ids)}
 
 # Mapping userID to the user dataframe
-tourism_rating["User_Id"] = tourism_rating["User_Id"].map(user_to_user_encoded)
+tourism_rating["id_user"] = tourism_rating["id_user"].map(user_to_user_encoded)
 
 # Mapping placeID to the place dataframe
-tourism_rating["Place_Id"] = tourism_rating["Place_Id"].map(place_to_place_encoded)
+tourism_rating["id_attraction"] = tourism_rating["id_attraction"].map(
+    place_to_place_encoded
+)
 
 # Convert placeID to a list without duplicate values
-place_ids = tourism_rating["Place_Id"].unique().tolist()
+place_ids = tourism_rating["id_attraction"].unique().tolist()
 
 # Encoding placeID
 place_to_place_encoded = {x: i for i, x in enumerate(place_ids)}
@@ -45,10 +109,12 @@ place_to_place_encoded = {x: i for i, x in enumerate(place_ids)}
 place_encoded_to_place = {i: x for i, x in enumerate(place_ids)}
 
 # Mapping userID to the user dataframe
-tourism_rating["User_Id"] = tourism_rating["User_Id"].map(user_to_user_encoded)
+tourism_rating["id_user"] = tourism_rating["id_user"].map(user_to_user_encoded)
 
 # Mapping placeID to the place dataframe
-tourism_rating["Place_Id"] = tourism_rating["Place_Id"].map(place_to_place_encoded)
+tourism_rating["id_attraction"] = tourism_rating["id_attraction"].map(
+    place_to_place_encoded
+)
 
 # Getting the number of users
 num_users = len(user_to_user_encoded)
@@ -57,23 +123,21 @@ num_users = len(user_to_user_encoded)
 num_place = len(place_encoded_to_place)
 
 # Converting the rating to float values
-tourism_rating["Place_Ratings"] = tourism_rating["Place_Ratings"].values.astype(
-    np.float32
-)
+tourism_rating["rating"] = tourism_rating["rating"].values.astype(np.float32)
 
 # Minimum rating value
-min_rating = min(tourism_rating["Place_Ratings"])
+min_rating = min(tourism_rating["rating"])
 
 # Maximum rating value
-max_rating = max(tourism_rating["Place_Ratings"])
+max_rating = max(tourism_rating["rating"])
 
 collab_filtering = tourism_rating.sample(frac=1, random_state=42)
 
-x = collab_filtering[["User_Id", "Place_Id"]].values
+x = collab_filtering[["id_user", "id_attraction"]].values
 
 # Creating the variable y to represent the ratings
-y = ( 
-    collab_filtering["Place_Ratings"]
+y = (
+    collab_filtering["rating"]
     .apply(lambda x: (x - min_rating) / (max_rating - min_rating))
     .values
 )
@@ -123,36 +187,16 @@ model(dummy_input)
 model.load_weights("model.h5")
 
 
-@app.route("/recommend", methods=["POST"])
-def recommend():
-    data = request.json
-    user_id = data["User_Id"]
-    # place_visited_by_user = tourism_rating[tourism_rating["User_Id"] == user_id]
-    # user_encoder = user_to_user_encoded.get(user_id)
-    # place_not_visited = tourism_with_id[
-    #     ~tourism_with_id["Place_Id"].isin(place_visited_by_user.Place_Id.values)
-    # ]["Place_Id"]
-    # place_not_visited = list(
-    #     set(place_not_visited).intersection(set(place_to_place_encoded.keys()))
-    # )
-    # place_not_visited = [[place_to_place_encoded.get(x)] for x in place_not_visited]
-    # user_place_array = np.hstack(
-    #     (np.repeat(user_encoder, len(place_not_visited)), place_not_visited)
-    # )
-
-    # ratings = model.predict(user_place_array).flatten()
-    # top_ratings_indices = ratings.argsort()[-10:][::-1]
-    # recommended_place_ids = [
-    #     place_encoded_to_place.get(place_not_visited[x][0]) for x in top_ratings_indices
-    # ]
+def recommend(id_user):
+    user_id = id_user
     place_df = tourism_with_id
     df = tourism_rating
 
     # Mengambil sample user
-    place_visited_by_user = df[df.User_Id == user_id]
+    place_visited_by_user = df[df.id_user == user_id]
     place_not_visited = place_df[
-        ~place_df["Place_Id"].isin(place_visited_by_user.Place_Id.values)
-    ]["Place_Id"]
+        ~place_df["id_attraction"].isin(place_visited_by_user.id_attraction.values)
+    ]["id_attraction"]
     place_not_visited = list(
         set(place_not_visited).intersection(set(place_to_place_encoded.keys()))
     )
@@ -173,26 +217,21 @@ def recommend():
     print("----" * 8)
 
     top_place_user = (
-        place_visited_by_user.sort_values(by="Place_Ratings", ascending=False)
+        place_visited_by_user.sort_values(by="rating", ascending=False)
         .head(5)
-        .Place_Id.values
+        .id_attraction.values
     )
 
-    place_df_rows = place_df[place_df["Place_Id"].isin(top_place_user)]
+    place_df_rows = place_df[place_df["id_attraction"].isin(top_place_user)]
     for row in place_df_rows.itertuples():
-        print(row.Place_Name)
+        print(row.name_attraction)
 
     print("----" * 8)
     print("Top 10 place recommendation")
     print("----" * 8)
 
-    recommended_place = place_df[place_df["Place_Id"].isin(recommended_place_ids)]
+    recommended_place = place_df[place_df["id_attraction"].isin(recommended_place_ids)]
     place_name = []
     for row in recommended_place.itertuples():
-        place_name.append(row.Place_Name)
-
-    return jsonify({"recommended_places": place_name})
-
-
-if __name__ == "__main__":
-    app.run()
+        place_name.append(row.name_attraction)
+    return place_name
