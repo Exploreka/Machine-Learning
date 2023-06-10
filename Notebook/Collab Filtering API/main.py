@@ -7,14 +7,6 @@ from tensorflow import keras
 from tensorflow.keras import layers
 
 
-db = psycopg2.connect(
-    host="34.128.127.141",
-    port=5432,
-    user="postgres",
-    password="exploreka",
-    database="exploreka",
-)
-
 
 cursor = db.cursor()
 
