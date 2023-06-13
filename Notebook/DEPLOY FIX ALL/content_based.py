@@ -13,7 +13,7 @@ db = psycopg2.connect(
     password=os.getenv("DB_PASSWORD"),
     database=os.getenv("DB_NAME"),
 )
-df = pd.read_csv("tourism_with_id.csv")
+# df = pd.read_csv("tourism_with_id.csv")
 
 # Membuat objek cursor
 cursor = db.cursor()
