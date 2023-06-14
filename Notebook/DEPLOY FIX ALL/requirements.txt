@@ -1,0 +1,9 @@
+psycopg2
+numpy
+tensorflow
+pandas
+Flask
+gunicorn
+python-dotenv
+tensorflow
+category_encoders

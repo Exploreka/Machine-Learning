@@ -1,16 +1,19 @@
 import pickle
 import pandas as pd
 import psycopg2
-
+from dotenv import load_dotenv
+import os
 # data_filtering = pd.read_csv("./data_filtering.csv")
 # Membuat koneksi ke database MySQL
+
 db = psycopg2.connect(
-    host="34.128.127.141",
-    port=5432,
-    user="postgres",
-    password="exploreka",
-    database="exploreka",
+    host=os.getenv("DB_HOST"),
+    port=os.getenv("DB_PORT"),
+    user=os.getenv("DB_USER"),
+    password=os.getenv("DB_PASSWORD"),
+    database=os.getenv("DB_NAME"),
 )
+
 # df = pd.read_csv("tourism_with_id.csv")
 
 # Membuat objek cursor
