@@ -3,6 +3,7 @@ import pandas as pd
 import psycopg2
 from dotenv import load_dotenv
 import os
+
 load_dotenv()
 # data_filtering = pd.read_csv("./data_filtering.csv")
 # Membuat koneksi ke database MySQL
@@ -13,7 +14,7 @@ db = psycopg2.connect(
     password=os.getenv("DB_PASSWORD"),
     database=os.getenv("DB_NAME"),
 )
-df = pd.read_csv("tourism_with_id.csv")
+# df = pd.read_csv("tourism_with_id.csv")
 
 # Membuat objek cursor
 cursor = db.cursor()
