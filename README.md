@@ -37,7 +37,7 @@ To build a recommendation system, we use the dataset on kaggle [here](https://ww
  
  1. Open Folder Notebook/DEPLOY FIX ALL
  2. Clone to your local repo
- 3. create `.env` and then fill with your requiremennt 
+ 3. fill file `.env` with your requiremennt 
  4. open `CMD` then input command `pip install -r requirements.txt`
  5. after that input commamd `python main.py`
 ## Documentation
