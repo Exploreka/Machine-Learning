@@ -33,3 +33,9 @@ To build a recommendation system, we use the dataset on kaggle [here](https://ww
  - [Recommendation System Dengan Python : Content Based Filtering (Part 2)](https://medium.com/data-folks-indonesia/recommendation-system-dengan-python-content-based-filtering-part-2-222a8c365add)
  - [Building a Content Based Recommender System for Hotels in Seattle](https://towardsdatascience.com/building-a-content-based-recommender-system-for-hotels-in-seattle-d724f0a32070)
  - [An Exhaustive Guide to Decision Tree Classification in Python 3.x](https://towardsdatascience.com/an-exhaustive-guide-to-classification-using-decision-trees-8d472e77223f)
+ ## How to Use
+ 
+ 1. Open Folder Notebook/DEPLOY FIX ALL
+ 2. Clone to your local repo
+ 3. open 'CMD' then input command 'pip install -r requirements.txt'
+ 4. after that input commamd 'python main.py'
