@@ -39,3 +39,5 @@ To build a recommendation system, we use the dataset on kaggle [here](https://ww
  2. Clone to your local repo
  3. open `CMD` then input command `pip install -r requirements.txt`
  4. after that input commamd `python main.py`
+## Documentation
+https://web.postman.co/workspace/83a3bbe3-a349-4de4-8162-58d89dfb1aeb/documentation/26327686-9bc1a5ff-2d69-4849-aceb-f24ff7323460
